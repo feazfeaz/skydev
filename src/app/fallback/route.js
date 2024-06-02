@@ -1,71 +1,22 @@
-import { promises as fs } from "fs";
-import path from "path";
-import ffmpegStatic from "ffmpeg-static";
+// import ffmpegPath from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
-import ffprobeStatic from "ffprobe-static";
+import { promises as fs } from "fs";
 import { parseFile } from "music-metadata";
+import ffprobeStatic from "ffprobe-static";
+import path from "path";
 
 const filePath_ = process.env.FILE_PATH;
 const dirPath_ = process.env.DIR_PATH;
+const newDirPath = "\\020624-hyu";
+const btsPath = "\\bts";
 export async function GET() {
-  // funcA();
-  funcB();
+  // await funcA(); // audio out put
+  // funcB();
+  await funcC();
   return Response.json({ rep: "hello" });
 }
 
-async function funcA() {
-  if (!filePath_) {
-    console.error("Missing filepath!");
-    return Response.json({});
-  }
-
-  if (!dirPath_) {
-    console.error("Missing dirpath!");
-    return Response.json({});
-  }
-
-  // Cấu hình đường dẫn tới ffmpeg và ffprobe
-  ffmpeg.setFfmpegPath(ffmpegStatic || "");
-  ffmpeg.setFfprobePath(ffprobeStatic.path);
-
-  const files = await fs.readdir(dirPath_);
-
-  // Lọc các tệp .mp4
-  const mp4Files = files.filter(
-    (file) =>
-      path.extname(file).toLowerCase() === ".mp4" ||
-      path.extname(file).toLowerCase() === ".mp3"
-  );
-
-  // Hàm lấy thời lượng của tệp video
-  const getVideoDuration = (filePath) => {
-    return new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(filePath, (err, metadata) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(metadata.format.duration);
-        }
-      });
-    });
-  };
-  // Lấy thời lượng của các tệp .mp4
-  const mp4FilesWithDuration = await Promise.all(
-    mp4Files.map(async (file) => {
-      const filePath = path.join(dirPath_, file);
-      const duration = await getVideoDuration(filePath);
-      return { file, duration };
-    })
-  );
-  // Đọc file JSON
-  const fileContents = await fs.readFile(filePath_, "utf8");
-  // Parse nội dung của file JSON
-  const data = JSON.parse(fileContents);
-  // Trả về dữ liệu dưới dạng JSON
-}
 async function funcB() {
-  const newDirName = "\\020624-hyu";
-
   async function handleListingMusic(mpnFiles) {
     const getMetadata = async (filePath_) => {
       const metadata = await parseFile(filePath_);
@@ -87,9 +38,9 @@ async function funcB() {
       currentStartTime += fileObj.duration;
       fileObj.startTimeFormat = formatDuration(fileObj.startTimeSecond);
     }
-    // console.log("filesWithDuration: ", files);
+    console.log("filesWithDuration: ", files);
 
-    await myMkdir(dirPath_ + newDirName);
+    await myMkdir(dirPath_ + newDirPath);
 
     const listingMusicDocs = files
       .map((file) => {
@@ -100,7 +51,7 @@ async function funcB() {
 
     // Ghi nội dung vào tệp
     await fs.writeFile(
-      dirPath_.concat(newDirName, "\\listing.txt"),
+      dirPath_.concat(newDirPath, "\\listing.txt"),
       listingMusicDocs,
       { flag: "w" }
     );
@@ -133,7 +84,7 @@ async function funcB() {
     const sourceFilePath = dirPath_.concat("\\", file);
     console.log("sourceFilePath: ", sourceFilePath);
     const targetFilePath = dirPath_.concat(
-      newDirName,
+      newDirPath,
       "\\",
       copyFileIndex++,
       ".mp3"
@@ -187,4 +138,197 @@ function removeFileExtension(filename) {
 
   // Trả về phần tên tệp trước dấu chấm cuối cùng
   return filename.substring(0, lastDotIndex);
+}
+
+async function funcA() {
+  if (!filePath_) {
+    console.error("Missing filepath!");
+    return Response.json({});
+  }
+
+  if (!dirPath_) {
+    console.error("Missing dirpath!");
+    return Response.json({});
+  }
+
+  // ffmpeg.setFfmpegPath(
+  //   process.cwd().concat("\\node_modules\\ffmpeg-static\\ffmpeg.exe")
+  // );
+  ffmpeg.setFfmpegPath(
+    process
+      .cwd()
+      .concat("\\node_modules\\@ffmpeg-installer\\win32-x64\\ffmpeg.exe")
+  );
+  ffmpeg.setFfprobePath(
+    process
+      .cwd()
+      .concat("\\node_modules\\ffprobe-static\\bin\\win32\\x64\\ffprobe.exe")
+  );
+
+  console.log("started");
+
+  const files = await fs.readdir(dirPath_.concat("\\020624-hyu"));
+  // console.log("files: ", files);
+  const mpnFiles = files
+    .filter((file) =>
+      [
+        ".mp3",
+        // , ".mp4"
+      ].includes(path.extname(file).toLowerCase())
+    )
+    .map((file) => {
+      return dirPath_.concat("\\020624-hyu", "\\", file);
+    });
+
+  console.log("mpnFiles: ", mpnFiles);
+
+  // Path to the output audio file
+  const outputAudio = dirPath_.concat(newDirPath, btsPath, "\\render.mp3");
+
+  // Create a temporary file list
+  const tempFileList = dirPath_.concat(newDirPath, btsPath, "\\files.txt");
+  const fileListContent = mpnFiles
+    .map((filePath) => `file '${filePath}'`)
+    .join("\n");
+
+  fs.writeFile(tempFileList, fileListContent);
+
+  // Merge audio files using the concat filter
+  ffmpeg()
+    .input(tempFileList)
+    .inputOptions(["-f", "concat", "-safe", "0"])
+    .outputOptions("-c", "copy")
+    .on("start", (commandLine) => {
+      console.log("Spawned ffmpeg with command: " + commandLine);
+    })
+    .on("progress", (progress) => {
+      console.log("progress: ", progress);
+      console.log("Processing: " + progress.percent + "% done");
+    })
+    .on("end", () => {
+      console.log("Merging finished successfully");
+      fs.unlink(tempFileList); // Clean up the temporary file
+    })
+    .on("error", (err) => {
+      console.error("An error occurred: " + err.message);
+      fs.unlink(tempFileList); // Clean up the temporary file in case of error
+    })
+    .save(outputAudio);
+
+  // const commands = mpnFiles.map((audioPath) => {
+  //   return ffmpeg().input(audioPath).audioCodec("copy").format("mp3");
+  // });
+
+  // Ghép các video lại với nhau bằng cách sử dụng phương thức mergeToFile
+  // ffmpeg()
+  //   .mergeToFile(commands, "output.mp3", dirPath_.concat("\\020624-hyu"))
+  //   .on("error", (err) => {
+  //     console.error("Error merging videos:", err);
+  //   })
+  //   .on("end", () => {
+  //     console.log("Videos merged successfully");
+  //   })
+  //   .run();
+
+  // return;
+  // const inputPath = path.join(process.cwd(), "public", "input.mp4");
+  // console.log("inputPath: ", inputPath);
+  // const outputPath = path.join(process.cwd(), "public", "output.mp4");
+  // console.log("outputPath: ", outputPath);
+
+  // ffmpeg(inputPath)
+  //   .setStartTime(startTime)
+  //   .duration(duration)
+  //   .output(outputPath)
+  //   .on("start", (commandLine) => {
+  //     console.log("Spawned ffmpeg with command: " + commandLine);
+  //   })
+  //   .on("progress", (progress) => {
+  //     console.log("Processing: " + progress.percent + "% done");
+  //   })
+  //   .on("end", () => {
+  //     console.log("Processing finished successfully");
+  //     res
+  //       .status(200)
+  //       .json({ message: "Video cut successfully", output: "output.mp4" });
+  //   })
+  //   .on("error", (err) => {
+  //     console.error("An error occurred: " + err.message);
+  //     res.status(500).json({ error: err.message });
+  //   })
+  //   .run();
+
+  // Thời gian bắt đầu và độ dài của đoạn cần cắt
+  // const startTime = "00:00:00"; // Giây thứ 30
+  // const duration = "30"; // Đoạn dài 30 giây
+  // // Đường dẫn tuyệt đối tới tệp đầu vào và đầu ra
+  // const inputPath = dirPath_.concat("\\020624-hyu\\1.mp3");
+  // const outputPath = dirPath_.concat("\\020624-hyu\\output.mp3");
+
+  // ffmpeg(inputPath)
+  //   .setStartTime(startTime)
+  //   .duration(duration)
+  //   .output(outputPath)
+  //   .on("start", (commandLine) => {
+  //     console.log("Spawned ffmpeg with command: " + commandLine);
+  //   })
+  //   .on("progress", (progress) => {
+  //     console.log("progress: ", progress);
+  //     // console.log("Processing: " + progress.percent + "% done");
+  //   })
+  //   .on("end", () => {
+  //     console.log("Processing finished successfully");
+  //   })
+  //   .on("error", (err) => {
+  //     console.error("An error occurred: " + err.message);
+  //   })
+  //   .run();
+}
+
+async function funcC() {
+  if (!filePath_) {
+    console.error("Missing filepath!");
+    return Response.json({});
+  }
+
+  if (!dirPath_) {
+    console.error("Missing dirpath!");
+    return Response.json({});
+  }
+
+  // ffmpeg.setFfmpegPath(
+  //   process.cwd().concat("\\node_modules\\ffmpeg-static\\ffmpeg.exe")
+  // );
+  ffmpeg.setFfmpegPath(
+    process
+      .cwd()
+      .concat("\\node_modules\\@ffmpeg-installer\\win32-x64\\ffmpeg.exe")
+  );
+  ffmpeg.setFfprobePath(
+    process
+      .cwd()
+      .concat("\\node_modules\\ffprobe-static\\bin\\win32\\x64\\ffprobe.exe")
+  );
+
+  console.log("started");
+
+  const inputVideo = dirPath_.concat(newDirPath, btsPath, "\\video.mp4");
+  const newAudio = dirPath_.concat(newDirPath, btsPath, "\\render.mp3");
+  const outputVideo = dirPath_.concat(
+    newDirPath,
+    btsPath,
+    "\\output_video.mp4"
+  );
+
+  ffmpeg(inputVideo)
+    .input(newAudio)
+    .outputOptions("-c:v", "copy", "-map", "0:v:0", "-map", "1:a:0")
+    .audioCodec("aac")
+    .on("error", (err) => {
+      console.error("An error occurred: " + err.message);
+    })
+    .on("end", () => {
+      console.log("Conversion finished");
+    })
+    .save(outputVideo);
 }
