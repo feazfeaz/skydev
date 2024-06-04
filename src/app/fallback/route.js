@@ -4,18 +4,25 @@ import { promises as fs } from "fs";
 import { parseFile } from "music-metadata";
 import ffprobeStatic from "ffprobe-static";
 import path from "path";
+import { oneClick } from "@/services/renderService";
 
 const filePath_ = process.env.FILE_PATH;
 const dirPath_ = process.env.DIR_PATH;
 const newDirPath = "\\020624-hyu";
 const btsPath = "\\bts";
+const instruPath = `${dirPath_}\\instru`;
+const popPath = `${dirPath_}\\pop`;
+const screenPath = `${dirPath_}\\screen`;
+
 export async function GET() {
   // await funcA(); // audio out put
   // funcB();
-  await funcC();
+  // await funcC();
+  // await funcD();
+  await oneClick();
+
   return Response.json({ rep: "hello" });
 }
-
 async function funcB() {
   async function handleListingMusic(mpnFiles) {
     const getMetadata = async (filePath_) => {
@@ -140,6 +147,7 @@ function removeFileExtension(filename) {
   return filename.substring(0, lastDotIndex);
 }
 
+//compress audio
 async function funcA() {
   if (!filePath_) {
     console.error("Missing filepath!");
@@ -285,12 +293,90 @@ async function funcA() {
   //   .run();
 }
 
-async function funcC() {
-  if (!filePath_) {
-    console.error("Missing filepath!");
+//compress screen
+async function funcD() {
+  if (!dirPath_) {
+    console.error("Missing dirpath!");
     return Response.json({});
   }
 
+  // ffmpeg.setFfmpegPath(
+  //   process.cwd().concat("\\node_modules\\ffmpeg-static\\ffmpeg.exe")
+  // );
+
+  ffmpeg.setFfmpegPath(
+    process
+      .cwd()
+      .concat("\\node_modules\\@ffmpeg-installer\\win32-x64\\ffmpeg.exe")
+  );
+  ffmpeg.setFfprobePath(
+    process
+      .cwd()
+      .concat("\\node_modules\\ffprobe-static\\bin\\win32\\x64\\ffprobe.exe")
+  );
+  console.log("started");
+
+  //get audio duration
+  const audioPath = `${dirPath_}${newDirPath}\\bts\\temporary_audio.mp3`;
+  const audioDuration = (await parseFile(audioPath)).format.duration;
+  if (!audioDuration) {
+    console.error("Found not file");
+    return;
+  }
+
+  //get screen file - duration, path, name
+  const files = await fs.readdir(screenPath);
+  const mp4Files = files.filter((file) =>
+    [".mp4"].includes(path.extname(file).toLowerCase())
+  );
+
+  //shuffle list
+  const mp4FilesShuffled = shuffleArray(mp4Files);
+  const mp4FilesShuffledPath = mp4FilesShuffled.map(
+    (fileName) => `${screenPath}\\${fileName}`
+  );
+
+  // Path to the output audio file
+  const outputScreen = dirPath_.concat(newDirPath, btsPath, "\\tmp_screen.mp4");
+
+  // Create a temporary file list
+  const tempFileList = dirPath_.concat(
+    newDirPath,
+    btsPath,
+    "\\tmp_cmd_screen_files.txt"
+  );
+  const fileListContent = mp4FilesShuffledPath
+    .map((filePath) => `file '${filePath}'`)
+    .join("\n");
+
+  fs.writeFile(tempFileList, fileListContent);
+
+  // return;
+  // Merge audio files using the concat filter
+  ffmpeg()
+    .input(tempFileList)
+    .inputOptions(["-f", "concat", "-safe", "0"])
+    .outputOptions("-c", "copy")
+    .duration(audioDuration)
+    .on("start", (commandLine) => {
+      console.log("Spawned ffmpeg with command: " + commandLine);
+    })
+    .on("progress", (progress) => {
+      console.log("progress: ", progress);
+      console.log("Processing: " + progress.percent + "% done");
+    })
+    .on("end", () => {
+      console.log("Merging finished successfully");
+      fs.unlink(tempFileList); // Clean up the temporary file
+    })
+    .on("error", (err) => {
+      console.error("An error occurred: " + err.message);
+      fs.unlink(tempFileList); // Clean up the temporary file in case of error
+    })
+    .save(outputScreen);
+}
+
+async function funcC() {
   if (!dirPath_) {
     console.error("Missing dirpath!");
     return Response.json({});
@@ -312,13 +398,9 @@ async function funcC() {
 
   console.log("started");
 
-  const inputVideo = dirPath_.concat(newDirPath, btsPath, "\\video.mp4");
-  const newAudio = dirPath_.concat(newDirPath, btsPath, "\\render.mp3");
-  const outputVideo = dirPath_.concat(
-    newDirPath,
-    btsPath,
-    "\\output_video.mp4"
-  );
+  const inputVideo = dirPath_.concat(newDirPath, btsPath, "\\tmp_screen.mp4");
+  const newAudio = dirPath_.concat(newDirPath, btsPath, "\\tmp_audio.mp3");
+  const outputVideo = dirPath_.concat(newDirPath, btsPath, "\\endprod.mp4");
 
   ffmpeg(inputVideo)
     .input(newAudio)
