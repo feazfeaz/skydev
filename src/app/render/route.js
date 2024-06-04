@@ -26,6 +26,9 @@ const popPath = `${dirPath_}\\pop`;
 const screenPath = `${dirPath_}\\screen`;
 const newDirPath = `${dirPath_}\\020624-hyu`;
 const btsPath = `${newDirPath}\\bts`;
+const instruFormatedPath = `${instruPath}\\formated`;
+const popformatedPath = `${popPath}\\formated`;
+const screenformatedPath = `${screenPath}\\formated`;
 
 export async function GET() {
   await oneClick();
@@ -42,7 +45,6 @@ async function oneClick() {
 
   // await createEndProduct(playlist);
 }
-
 async function createTmpAudioFile(playlist) {
   // Path to the output audio file
   const outputAudio = `${newDirPath}\\tmp_audio.mp3`;
@@ -211,7 +213,6 @@ async function createEndProduct() {
     })
     .save(outputVideo);
 }
-
 async function cleanUp() {
   const filesClean = [
     `${newDirPath}\\tmp_audio.mp3`,
