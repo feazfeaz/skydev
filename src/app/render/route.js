@@ -43,10 +43,11 @@ export async function GET() {
 
 export async function POST(request) {
   const order = await request.json();
-  console.log("order: ", order);
-  const result = await getPlayList(order);
-  console.log("result : ", result);
-  return Response.json({ rep: "hello" });
+  const playlist = await getPlayList(order);
+  await createPlayListTimeFile(playlist);
+  await createTmpAudioFile(playlist);
+
+  return Response.json({ rep: "run" });
 }
 
 async function oneClick() {
@@ -113,7 +114,7 @@ async function getPlayListOnOrder(order) {
         name: removeFileExtension(fileFullName),
         fullname: fileFullName,
         absPath: `${instruSelectedPath}\\${fileFullName}`,
-      }));
+      })); // thiếu filter
 
     const priorityFilesSelected = fillFilesSelect.slice(
       0,
