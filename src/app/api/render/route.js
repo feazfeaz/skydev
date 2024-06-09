@@ -8,6 +8,7 @@ import {
   formatDuration,
   myMkdir,
 } from "@/services/util";
+import { prisma } from "@/lib/prisma";
 
 ffmpeg.setFfmpegPath(
   process
@@ -21,8 +22,10 @@ ffmpeg.setFfprobePath(
 );
 
 const dirPath_ = process.env.DIR_PATH;
-const newDirPath = `${dirPath_}\\020624-hyu`;
-const btsPath = `${newDirPath}\\bts`;
+const newDirPath = `${dirPath_}\\${new Date()
+  .toISOString()
+  .replace(/[:.-]/g, "_")}`;
+await myMkdir(newDirPath);
 
 const instruPath = `${dirPath_}\\instru`;
 const instruSelectedPath = `${instruPath}\\selected`;
@@ -36,7 +39,8 @@ const screenPath = `${dirPath_}\\screen`;
 const screenFormattedPath = `${screenPath}\\formated`;
 
 export async function GET() {
-  await oneClick();
+  // await oneClick();
+  const users = await prisma.user.findMany();
 
   return Response.json({ rep: "hello" });
 }
@@ -123,6 +127,7 @@ async function getPlayListOnOrder(order) {
     audioFiles.push(...priorityFilesSelected);
   }
   await durationExpand(audioFiles);
+  console.log("audioFiles: ", audioFiles);
 
   return audioFiles;
 }
