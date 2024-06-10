@@ -8,7 +8,6 @@ import {
   formatDuration,
   myMkdir,
 } from "@/services/util";
-import { prisma } from "@/lib/prisma";
 
 ffmpeg.setFfmpegPath(
   process
@@ -22,10 +21,8 @@ ffmpeg.setFfprobePath(
 );
 
 const dirPath_ = process.env.DIR_PATH;
-const newDirPath = `${dirPath_}\\${new Date()
-  .toISOString()
-  .replace(/[:.-]/g, "_")}`;
-await myMkdir(newDirPath);
+const newDirPath = createUniqueDirectory(dirPath_);
+const btsPath = `${newDirPath}\\bts`;
 
 const instruPath = `${dirPath_}\\instru`;
 const instruSelectedPath = `${instruPath}\\selected`;
@@ -40,7 +37,7 @@ const screenFormattedPath = `${screenPath}\\formated`;
 
 export async function GET() {
   // await oneClick();
-  const users = await prisma.user.findMany();
+  createUniqueDirectory(dirPath_);
 
   return Response.json({ rep: "hello" });
 }
@@ -48,6 +45,7 @@ export async function GET() {
 export async function POST(request) {
   const order = await request.json();
   const playlist = await getPlayList(order);
+  // console.log(playlist);
   await createPlayListTimeFile(playlist);
   await createTmpAudioFile(playlist);
 
@@ -91,7 +89,7 @@ async function getPlayListOnOrder(order) {
   let audioFiles = [];
 
   if (order.priorityPicked > 0) {
-    const priorityFiles = (await fs.readdir(instruPriorityPath))
+    let priorityFiles = (await fs.readdir(instruPriorityPath))
       .filter((file) => [".mp3"].includes(path.extname(file).toLowerCase()))
       .map((fileFullName) => ({
         name: removeFileExtension(fileFullName),
@@ -102,7 +100,7 @@ async function getPlayListOnOrder(order) {
     if (!priorityFiles || priorityFiles.length < order.priorityPicked) {
       return [];
     }
-
+    priorityFiles = shuffleArray(priorityFiles);
     const priorityFilesSelected = priorityFiles.slice(0, order.priorityPicked);
     audioFiles.unshift(...priorityFilesSelected);
 
@@ -112,23 +110,25 @@ async function getPlayListOnOrder(order) {
   }
 
   if (order.isSelect) {
-    const fillFilesSelect = (await fs.readdir(instruSelectedPath))
+    let fillFilesSelect = (await fs.readdir(instruSelectedPath))
       .filter((file) => [".mp3"].includes(path.extname(file).toLowerCase()))
       .map((fileFullName) => ({
         name: removeFileExtension(fileFullName),
         fullname: fileFullName,
         absPath: `${instruSelectedPath}\\${fileFullName}`,
       })); // thiếu filter
+    fillFilesSelect = shuffleArray(fillFilesSelect);
 
-    const priorityFilesSelected = fillFilesSelect.slice(
+    const fillFilesSelected = fillFilesSelect.slice(
       0,
       order.totalPlaylistBySongNumbers
     );
-    audioFiles.push(...priorityFilesSelected);
+    audioFiles.push(...fillFilesSelected);
   }
+  const cloneAudio = JSON.parse(JSON.stringify(audioFiles));
+  audioFiles.push(...cloneAudio);
+  audioFiles.push(...cloneAudio);
   await durationExpand(audioFiles);
-  console.log("audioFiles: ", audioFiles);
-
   return audioFiles;
 }
 async function setMetadataFile() {}
@@ -137,7 +137,8 @@ async function durationExpand(files) {
   //time config
   let initStartTime = 0.0;
   let currentStartTime = 0.0;
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    let file = files[i];
     file.durationSecond = (await parseFile(file.absPath)).format.duration;
     file.startTimeSecond = initStartTime + currentStartTime;
     file.startTimeFormat = formatDuration(file.startTimeSecond);
@@ -211,11 +212,18 @@ async function createTmpScreenFile(playlist) {
   const mp4Files = files.filter((file) =>
     [".mp4"].includes(path.extname(file).toLowerCase())
   );
+
   //shuffle list
   const mp4FilesShuffled = shuffleArray(mp4Files);
   const mp4FilesShuffledPath = mp4FilesShuffled.map(
     (fileName) => `${screenFormattedPath}\\${fileName}`
   );
+
+  if (audioDuration > 3600) {
+    const cloneVideo = JSON.parse(JSON.stringify(mp4FilesShuffledPath));
+    mp4FilesShuffledPath.push(...cloneVideo);
+    mp4FilesShuffledPath.push(...cloneVideo);
+  }
   // Path to the output audio file
   const outputScreen = `${newDirPath}\\tmp_screen.mp4`;
   // Create a temporary file list
@@ -232,14 +240,14 @@ async function createTmpScreenFile(playlist) {
     .outputOptions("-c", "copy")
     .duration(audioDuration)
     .on("start", (cmd) => {
-      // console.log("Screen ffmpeg with command: " + commandLine);
-      console.log("Screen starting...");
+      // console.dir("Screen ffmpeg with command: " + commandLine);
+      console.dir("Screen starting...");
     })
     .on("progress", (progress) => {
-      // console.log("Processing : " + progress.percent + "% done");
+      // console.dir("Processing : " + progress.percent + "% done");
     })
     .on("end", async () => {
-      console.log("Screen finished successfully");
+      console.dir("Screen finished successfully");
       fs.unlink(tempFileList); // Clean up the temporary file
       await createEndProduct();
     })
@@ -281,4 +289,26 @@ async function cleanUp() {
   }
 
   console.log("Clean!");
+}
+
+function createUniqueDirectory(basePath) {
+  // Lấy thời gian hiện tại
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Tháng từ 0-11, nên cộng 1 và định dạng 2 chữ số
+  const date = String(now.getDate()).padStart(2, "0"); // Ngày định dạng 2 chữ số
+  const hours = String(now.getHours()).padStart(2, "0"); // Giờ định dạng 2 chữ số
+  const minutes = String(now.getMinutes()).padStart(2, "0"); // Phút định dạng 2 chữ số
+
+  // Tạo tên thư mục
+  const uniqueDirName = `${year}${month}${date}_${hours}${minutes}`;
+
+  // Tạo đường dẫn đầy đủ cho thư mục
+  const newDirPath_ = path.join(basePath, uniqueDirName);
+
+  // Tạo thư mục
+  myMkdir(newDirPath_);
+
+  // Trả về đường dẫn của thư mục mới tạo
+  return newDirPath_;
 }
