@@ -6,7 +6,7 @@ const PlayListContext = createContext({});
 
 export { PlayListProvider, PlayListContext };
 
-const PlayListProvider = ({ children }) => {
+const PlayListProvider = ({ url, children }) => {
   const [files, setFilesState] = useState([]);
 
   const setFiles = (files) => {
@@ -20,7 +20,7 @@ const PlayListProvider = ({ children }) => {
           method: "get",
           url: "/api/file",
           params: {
-            url1: "C:\\Eaz\\re\\pjs\\lab\\storage\\instru",
+            url: url,
           },
         });
         setFiles(response.data.data);
@@ -33,7 +33,7 @@ const PlayListProvider = ({ children }) => {
   }, []);
 
   return (
-    <PlayListContext.Provider value={{ files, setFiles }}>
+    <PlayListContext.Provider value={{ files, setFiles, url }}>
       {children}
     </PlayListContext.Provider>
   );

@@ -1,6 +1,6 @@
 import ffmpeg from "fluent-ffmpeg";
 import path from "path";
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
 import { parseFile } from "music-metadata";
 import {
   removeFileExtension,
@@ -26,7 +26,52 @@ let formatPath = "";
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const url = searchParams.get("url1");
+  const url = searchParams.get("url");
+  return Response.json({ data: await readDir(url) });
+}
+
+export async function POST(req) {
+  const { url, files } = await req.json();
+  // console.log("files: ", files);
+
+  const priorityPath = path.join(url, "priority");
+  const trashPath = path.join(url, "trash");
+
+  await myMkdir(priorityPath);
+  await myMkdir(path.join(url, "format"));
+  await myMkdir(trashPath);
+
+  const priorityFiles = await fs.readdir(priorityPath);
+  const trashFiles = await fs.readdir(trashPath);
+
+  files.forEach((file) => {
+    if (file.isPriority) {
+      fs.copyFile(
+        path.join(url, file.fullname),
+        path.join(url, "priority", file.fullname)
+      );
+    } else {
+      if (priorityFiles.includes(file)) {
+        try {
+          fs.unlink(path.join(url, "priority", file.fullname));
+        } catch (error) {}
+      }
+    }
+
+    if (file.isTrash) {
+      fs.copyFile(
+        path.join(url, file.fullname),
+        path.join(url, "trash", file.fullname)
+      );
+    } else {
+      if (trashFiles.includes(file)) {
+        try {
+          fs.unlink(path.join(url, "trash", file.fullname));
+        } catch (error) {}
+      }
+    }
+  });
+
   return Response.json({ data: await readDir(url) });
 }
 

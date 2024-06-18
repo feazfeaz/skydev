@@ -21,10 +21,10 @@ ffmpeg.setFfprobePath(
 );
 
 const dirPath_ = process.env.DIR_PATH;
-const newDirPath = createUniqueDirectory(dirPath_);
+let newDirPath = "";
 const btsPath = `${newDirPath}\\bts`;
 
-const instruPath = `${dirPath_}\\instru`;
+const instruPath = `${dirPath_}\\instru - slowed`;
 const instruSelectedPath = `${instruPath}\\selected`;
 const instruPriorityPath = `${instruPath}\\priority`;
 // const instruFormatedPath = `${instruPath}\\formated`;
@@ -34,15 +34,17 @@ const popFormattedPath = `${popPath}\\formated`;
 
 const screenPath = `${dirPath_}\\screen`;
 const screenFormattedPath = `${screenPath}\\formated`;
+// const screenFormattedPath = `E:\\hyu\\storage\\night screen\\formatted`;
 
 export async function GET() {
   // await oneClick();
-  createUniqueDirectory(dirPath_);
+  // createUniqueDirectory(dirPath_);
 
   return Response.json({ rep: "hello" });
 }
 
 export async function POST(request) {
+  newDirPath = await createUniqueDirectory(path.join(dirPath_, "rendering"));
   const order = await request.json();
   const playlist = await getPlayList(order);
   // console.log(playlist);
@@ -207,8 +209,10 @@ async function createTmpScreenFile(playlist) {
     console.error("File not found ");
     return;
   }
+
+  const videoFilePath = screenFormattedPath;
   //get screen file - duration, path, name
-  const files = await fs.readdir(screenFormattedPath);
+  const files = await fs.readdir(videoFilePath);
   const mp4Files = files.filter((file) =>
     [".mp4"].includes(path.extname(file).toLowerCase())
   );
@@ -216,14 +220,21 @@ async function createTmpScreenFile(playlist) {
   //shuffle list
   const mp4FilesShuffled = shuffleArray(mp4Files);
   const mp4FilesShuffledPath = mp4FilesShuffled.map(
-    (fileName) => `${screenFormattedPath}\\${fileName}`
+    (fileName) => `${videoFilePath}\\${fileName}`
   );
 
-  if (audioDuration > 3600) {
-    const cloneVideo = JSON.parse(JSON.stringify(mp4FilesShuffledPath));
-    mp4FilesShuffledPath.push(...cloneVideo);
-    mp4FilesShuffledPath.push(...cloneVideo);
+  const cloneVideo = JSON.parse(JSON.stringify(mp4FilesShuffledPath));
+  let cloneVideoDuration = 0,
+    videoDuration = 0;
+  for (const file of mp4FilesShuffledPath) {
+    cloneVideoDuration += (await getMetadata(file)).duration;
   }
+  videoDuration = cloneVideoDuration;
+  while (videoDuration < audioDuration) {
+    mp4FilesShuffledPath.push(...cloneVideo);
+    videoDuration += cloneVideoDuration;
+  }
+
   // Path to the output audio file
   const outputScreen = `${newDirPath}\\tmp_screen.mp4`;
   // Create a temporary file list
@@ -249,7 +260,7 @@ async function createTmpScreenFile(playlist) {
     .on("end", async () => {
       console.dir("Screen finished successfully");
       fs.unlink(tempFileList); // Clean up the temporary file
-      await createEndProduct();
+      createEndProduct();
     })
     .on("error", (err) => {
       console.error("An error occurred: " + err.message);
@@ -291,7 +302,7 @@ async function cleanUp() {
   console.log("Clean!");
 }
 
-function createUniqueDirectory(basePath) {
+async function createUniqueDirectory(basePath) {
   // Lấy thời gian hiện tại
   const now = new Date();
   const year = now.getFullYear();
@@ -299,16 +310,26 @@ function createUniqueDirectory(basePath) {
   const date = String(now.getDate()).padStart(2, "0"); // Ngày định dạng 2 chữ số
   const hours = String(now.getHours()).padStart(2, "0"); // Giờ định dạng 2 chữ số
   const minutes = String(now.getMinutes()).padStart(2, "0"); // Phút định dạng 2 chữ số
+  const seconds = String(now.getSeconds()).padStart(2, "0");
 
   // Tạo tên thư mục
-  const uniqueDirName = `${year}${month}${date}_${hours}${minutes}`;
+  const uniqueDirName = `${year}${month}${date}_${hours}h${minutes}m${seconds}s`;
 
   // Tạo đường dẫn đầy đủ cho thư mục
   const newDirPath_ = path.join(basePath, uniqueDirName);
+  console.log("newDirPath_: ", newDirPath_);
 
   // Tạo thư mục
-  myMkdir(newDirPath_);
+  await myMkdir(newDirPath_);
 
   // Trả về đường dẫn của thư mục mới tạo
   return newDirPath_;
+}
+
+export async function getMetadata(filePath) {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(filePath, (err, metadata) =>
+      err ? reject(err) : resolve(metadata.format)
+    );
+  });
 }

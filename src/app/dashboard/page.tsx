@@ -47,8 +47,6 @@ function BasicTabs() {
     setValue(newValue);
   };
 
-  console.log("folders: ", folders);
-
   return (
     <Box sx={{ width: "100%" }}>
       <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
@@ -63,7 +61,12 @@ function BasicTabs() {
           <Tab wrapped label="Render" {...a11yProps(1)} />
           {folders &&
             folders.map((folders: { as: any }, index: number) => (
-              <Tab wrapped label={`${folders.as}`} {...a11yProps(index + 2)} />
+              <Tab
+                key={index + 2}
+                wrapped
+                label={`${folders.as}`}
+                {...a11yProps(index + 2)}
+              />
             ))}
         </Tabs>
       </Box>
@@ -73,13 +76,15 @@ function BasicTabs() {
       <CustomTabPanel value={value} index={1}>
         Em pơ ty
       </CustomTabPanel>
-
-      <CustomTabPanel value={value} index={2}>
-        <PlayListProvider>
-          <UpdateButton />
-          <FileTable />
-        </PlayListProvider>
-      </CustomTabPanel>
+      {folders &&
+        folders.map((folders: { as: any; path: any }, index: number) => (
+          <CustomTabPanel value={value} index={index + 2} key={index + 2}>
+            <PlayListProvider url={folders.path}>
+              <UpdateButton />
+              <FileTable />
+            </PlayListProvider>
+          </CustomTabPanel>
+        ))}
     </Box>
   );
 }
