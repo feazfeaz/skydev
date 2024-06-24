@@ -1,12 +1,7 @@
+//@ts-nocheck
 import { promises as fs } from "fs";
-module.exports = {
-  myMkdir,
-  removeFileExtension,
-  shuffleArray,
-  formatDuration,
-};
 
-async function myMkdir(folderName) {
+export async function myMkdir(folderName) {
   try {
     await fs.mkdir(folderName, { recursive: true });
   } catch (err) {
@@ -14,7 +9,7 @@ async function myMkdir(folderName) {
   }
 }
 
-function shuffleArray(array) {
+export function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
@@ -22,7 +17,7 @@ function shuffleArray(array) {
   return array;
 }
 
-function removeFileExtension(filename) {
+export function removeFileExtension(filename) {
   // Sử dụng phương thức lastIndexOf để tìm vị trí của dấu chấm cuối cùng
   const lastDotIndex = filename.lastIndexOf(".");
 
@@ -35,14 +30,15 @@ function removeFileExtension(filename) {
   return filename.substring(0, lastDotIndex);
 }
 
-function formatDuration(duration) {
+export function formatDuration(duration) {
   const hours = Math.floor(duration / 3600);
   const minutes = Math.floor((duration % 3600) / 60);
   const seconds = Math.floor(duration % 60);
 
   const formattedTime =
-    String(hours).padStart(2, "0") +
-    ":" +
+    (String(hours).padStart(2, "0") == "00"
+      ? ""
+      : String(hours).padStart(2, "0") + ":") +
     String(minutes).padStart(2, "0") +
     ":" +
     String(seconds).padStart(2, "0");

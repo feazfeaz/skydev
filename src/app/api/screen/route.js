@@ -8,6 +8,12 @@ import {
   myMkdir,
 } from "@/services/util";
 
+import {
+  extractAudio,
+  overlayVideo,
+  mergeVideoWithAudio,
+} from "@/services/ffmpegService";
+
 ffmpeg.setFfmpegPath(
   process
     .cwd()
@@ -19,10 +25,10 @@ ffmpeg.setFfprobePath(
     .cwd()
     .concat("\\node_modules\\ffprobe-static\\bin\\win32\\x64\\ffprobe.exe")
 );
-const __dirname = `E:\\hyu\\storage\\rendering`;
+
 export async function GET() {
   //get screen folder
-  const screenFolder = "E:\\hyu\\@nkltg - storage\\rendering";
+  const screenFolder = "E:\\hyu\\@nkltg - storage\\screen";
   const backgroundFile = "E:\\hyu\\@nkltg - storage\\rss\\background.mp4";
   //check screen has formatted yet?
   if (!(await fs.readdir(screenFolder)).includes("formatted")) {
@@ -52,21 +58,62 @@ export async function GET() {
     .filter((file) => !backgrounded.includes(file));
   //handle background
 
+  let index = 1;
+  let size = formattedFileNeedToBackground.length;
   for (const file of formattedFileNeedToBackground) {
-    console.log("file: ", file);
-    //create file tmp background file
+    console.dir(`${index++}/${size} '${file}'`);
+    // create file tmp background file
     await backgroundHandle(
       path.join(formattedPath, file),
       backgroundFile,
       backgroundedPath
     );
-    break;
+    // extract audio
+    // console.dir("extract: ");
+    await extractAudio(
+      path.join(formattedPath, file),
+      path.join(backgroundedPath, "tmp_audio.wav")
+    );
+    let isHaveAudio = false;
+    try {
+      await fs.stat(
+        path.join(backgroundedPath, "tmp_audio.wav"),
+        {},
+        (e, stat) => {}
+      );
+      isHaveAudio = true;
+    } catch (error) {
+      isHaveAudio = false;
+    }
+    // create video have backgroud
+    // console.dir("create ");
+    await overlayVideo(
+      path.join(formattedPath, file),
+      path.join(backgroundedPath, "tmp_repeat.mp4"),
+      path.join(backgroundedPath, "tmp_video.mp4")
+    );
+    // merge audio back to video
+    // console.dir("merge ");
+    if (isHaveAudio) {
+      await mergeVideoWithAudio(
+        path.join(backgroundedPath, "tmp_video.mp4"),
+        path.join(backgroundedPath, "tmp_audio.wav"),
+        path.join(backgroundedPath, file)
+      );
+    } else {
+      await fs.rename(
+        path.join(backgroundedPath, "tmp_video.mp4"),
+        path.join(backgroundedPath, file)
+      );
+    }
+    // clear file
+    // console.dir("clear");
+    await fs.unlink(path.join(backgroundedPath, "tmp_repeat.mp4"));
+    if (isHaveAudio) {
+      await fs.unlink(path.join(backgroundedPath, "tmp_audio.wav"));
+      await fs.unlink(path.join(backgroundedPath, "tmp_video.mp4"));
+    }
   }
-
-  // const landscapeVideoPath = path.join(__dirname, "Trộm Nhìn Nhau.mp4");
-  // const musicWaveVideoPath = path.join(__dirname, "background.mp4");
-  // const outputVideoPath = path.join(__dirname, "output.mp4");
-  // await screenHandle(landscapeVideoPath, musicWaveVideoPath, outputVideoPath);
 
   return Response.json({ rep: "run" });
 }

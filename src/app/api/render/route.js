@@ -313,7 +313,7 @@ async function createUniqueDirectory(basePath) {
   const seconds = String(now.getSeconds()).padStart(2, "0");
 
   // Tạo tên thư mục
-  const uniqueDirName = `${year}${month}${date}_${hours}h${minutes}m${seconds}s`;
+  const uniqueDirName = `_${hours}h${minutes}m${seconds}s_${date}${month}${year}`;
 
   // Tạo đường dẫn đầy đủ cho thư mục
   const newDirPath_ = path.join(basePath, uniqueDirName);
