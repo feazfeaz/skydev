@@ -44,3 +44,12 @@ export function formatDuration(duration) {
     String(seconds).padStart(2, "0");
   return formattedTime;
 }
+
+export function getRandomNumber(min: number, max: number): number {
+  // Kiểm tra để chắc chắn rằng min <= max
+  if (min > max) {
+    [min, max] = [max, min]; // Hoán đổi giá trị nếu min > max
+  }
+  // Tính toán và trả về một số ngẫu nhiên trong khoảng từ min đến max (bao gồm cả hai số)
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}

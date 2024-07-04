@@ -1,0 +1,6 @@
+file 'E:\hyu\@nhạctrữtình-bolero\exsound\bird chirping.wav'
+file 'E:\hyu\@nhạctrữtình-bolero\exsound\bird chirping (3).wav'
+file 'E:\hyu\@nhạctrữtình-bolero\exsound\bird chirping (2).wav'
+file 'E:\hyu\@nhạctrữtình-bolero\exsound\bird chirping.wav'
+file 'E:\hyu\@nhạctrữtình-bolero\exsound\bird chirping (3).wav'
+file 'E:\hyu\@nhạctrữtình-bolero\exsound\bird chirping (2).wav'

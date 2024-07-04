@@ -2,11 +2,18 @@
 import ffmpeg from "fluent-ffmpeg";
 import { promises as fs } from "fs";
 import path from "path";
-import { shuffleArray } from "./util";
+import { myMkdir, shuffleArray } from "./util";
 
 // import { createTmpAudioFile } from "@/services/ffmpegService";
 import { durationExpand } from "@/services/songService";
 import { removeFileExtension } from "@/services/util";
+import { addPlaylist, getFilesNameByFolderPath } from "./playlistService";
+import { changeExtension } from "./folderService";
+
+export const audioFirstFolderName = "first";
+export const audioHighlightFolderName = "highlight";
+export const audioOutFolderName = "out";
+export const pickUp = "pick_up";
 
 ffmpeg.setFfmpegPath(
   process
@@ -24,18 +31,28 @@ export const fffmpeg = ffmpeg;
 
 // ! input .mp4
 // ! output .wav
-export async function extractAudio(inputFilePath, outputAudioFilePath) {
+// 1 for 100%
+export async function extractAudio(
+  inputFilePath,
+  outputAudioFilePath?,
+  volumeDecreasePercent = 1
+) {
   return new Promise((resolve, reject) => {
+    const outputFilePath = outputAudioFilePath
+      ? outputAudioFilePath
+      : changeExtension(inputFilePath, ".wav");
+
     try {
       ffmpeg()
         .input(inputFilePath)
-        .output(outputAudioFilePath)
+        .output(outputFilePath)
         .audioCodec("pcm_s16le")
+        .audioFilters(`volume=${volumeDecreasePercent}`)
         .on("error", () => {
           resolve(false);
         })
         .on("end", () => {
-          resolve(true);
+          resolve(outputFilePath);
         })
         .run();
     } catch (error) {
@@ -190,7 +207,7 @@ export async function createTmpScreenFile(
       .on("end", async () => {
         // console.dir("Screen finished successfully");
         fs.unlink(tempFileList); // Clean up the temporary file
-        resolve();
+        resolve(outputScreenFilePath);
       })
       .on("error", (err) => {
         // console.error("An error occurred: " + err.message);
@@ -201,6 +218,7 @@ export async function createTmpScreenFile(
   });
 }
 // * this folder follow thoery 4 level audio pickup
+// còn rất nhiều bug liên quan thoery
 export async function getPlaylist(
   audioFolderPath: string,
   playlistLength: number,
@@ -297,7 +315,174 @@ export async function getPlaylist(
   // console.dir(audioFiles);
   return audioFiles;
 }
+// still follow thoery 4 level audio pickup
+// but safer
+export async function getPlaylistV2(
+  audioFolderPath: string,
+  playlistLength: number,
+  highlightPickup: number = 0
+) {
+  let audioFiles = [];
+  // check folder - we skip it now
+  await initAudioFolder(audioFolderPath);
+
+  if (highlightPickup) {
+    await addPlaylist(
+      audioFiles,
+      path.join(audioFolderPath, audioHighlightFolderName),
+      highlightPickup,
+      path.join(audioFolderPath, pickUp)
+    );
+  }
+
+  await addPlaylist(
+    audioFiles,
+    path.join(audioFolderPath),
+    playlistLength - highlightPickup
+  );
+
+  await durationExpand(audioFiles);
+
+  return audioFiles;
+}
+//
+async function initAudioFolder(audioFolderPath) {
+  return new Promise(async (resolve, reject) => {
+    //create all in-need folder
+    await myMkdir(path.join(audioFolderPath, audioFirstFolderName));
+
+    await myMkdir(path.join(audioFolderPath, audioHighlightFolderName));
+
+    // use default folder path for fill
+
+    await myMkdir(path.join(audioFolderPath, audioOutFolderName));
+
+    await myMkdir(path.join(audioFolderPath, pickUp));
+
+    resolve();
+  });
+}
+// dont in-use or export
+export async function mergeAudioFiles(
+  inputAudio1stFilePath, //music
+  inputAudio2ndFilePath, //ex
+  outputAudioFileFilePath //out
+) {
+  return new Promise(async (resolve, reject) => {
+    ffmpeg()
+      .input(inputAudio2ndFilePath)
+      .input(inputAudio1stFilePath)
+      .complexFilter(["[0:a][1:a]amix=inputs=2:dropout_transition=2[a]"])
+      .outputOptions(["-map [a]", "-ac 2", "-ar 44100"])
+      .output(outputAudioFileFilePath)
+      .on("end", () => {
+        resolve(outputAudioFileFilePath);
+      })
+      .on("error", (err) => {
+        console.error("Error:", err);
+        reject(err);
+      })
+      .run();
+  });
+}
+//???
+export async function createExsoundFile(
+  inhandFolderPath,
+  inputExsoundFolderPath,
+  outputExsoundFilePath,
+  audioDuration
+) {
+  return new Promise(async (resolve, reject) => {
+    let exsoundFileNames = (
+      await getFilesNameByFolderPath(inputExsoundFolderPath, ".wav")
+    ).map((fileName) => `${inputExsoundFolderPath}\\${fileName}`);
+
+    //shuffle ex-sound list
+    exsoundFileNames = shuffleArray(exsoundFileNames);
+
+    //repeat ex-sound
+    const cloneExsound = JSON.parse(JSON.stringify(exsoundFileNames));
+    let cloneExsoundDuration = 0;
+    for (const file of cloneExsound) {
+      cloneExsoundDuration += (await getMetadata(file)).duration;
+    }
+
+    //how many time we need to repeat exsound
+    const repeatTime = Math.round(audioDuration / cloneExsoundDuration);
+    for (let index = 0; index < repeatTime; index++) {
+      exsoundFileNames.push(...cloneExsound);
+    }
+
+    await mergeWavFiles(exsoundFileNames, outputExsoundFilePath, audioDuration);
+
+    resolve(outputExsoundFilePath);
+  });
+}
+// only for wav
+// mp3 idk, not test yet
+export async function createTmpAudioWavFile(
+  inhandFolderPath,
+  playlist,
+  outputAudioFilePath
+) {
+  return new Promise(async (resolve, reject) => {
+    const fileListContent = playlist.map(({ absPath }) => absPath);
+
+    await mergeWavFiles(fileListContent, outputAudioFilePath);
+
+    resolve(outputAudioFilePath);
+  });
+}
+// private function
+// not rdy for mp3
+async function mergeWavFiles(wavFiles, outputWavFile, duration?) {
+  return new Promise((resolve, reject) => {
+    const ffmpegCommand = ffmpeg();
+
+    // Thêm từng file âm thanh vào input của ffmpeg
+    wavFiles.forEach((file) => ffmpegCommand.input(file));
+
+    // Cấu hình complex filter để hợp nhất các file âm thanh
+    const inputCount = wavFiles.length;
+    const filterString =
+      Array.from({ length: inputCount }, (_, i) => `[${i}:0]`).join("") +
+      `concat=n=${inputCount}:v=0:a=1[out]`;
+
+    if (duration) {
+      ffmpegCommand
+        .complexFilter([filterString])
+        .outputOptions(["-map", "[out]", "-c:a", "pcm_s16le"]) // Chuyển âm thanh sang định dạng PCM 16-bit
+        .duration(duration)
+        .on("start", (cmd) => {
+          // console.info("Started merging WAV files with command:", cmd);
+        })
+        .on("end", () => {
+          resolve();
+        })
+        .on("error", (err) => {
+          reject(err);
+        })
+        .save(outputWavFile);
+    } else {
+      ffmpegCommand
+        .complexFilter([filterString])
+        .outputOptions(["-map", "[out]", "-c:a", "pcm_s16le"]) // Chuyển âm thanh sang định dạng PCM 16-bit
+        .on("start", (cmd) => {})
+        .on("end", () => {
+          resolve();
+        })
+        .on("error", (err) => {
+          reject(err);
+        })
+        .save(outputWavFile);
+    }
+  });
+}
+
 // dont in-use or export
 async function form(inputfile, outputAudioFile) {
+  return new Promise(async (resolve, reject) => {});
+}
+async function exform(inputfile, outputAudioFile) {
   return new Promise((resolve, reject) => {});
 }

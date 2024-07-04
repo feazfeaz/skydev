@@ -48,3 +48,71 @@ export async function isExist(pathPar: String, isFast: boolean = true) {
     return false;
   }
 }
+
+export async function getFileNameRawMarks(
+  filename: string,
+  folderPath: string
+): Promise<string> {
+  const files = await fs.readdir(folderPath);
+  const baseName = getFileNameRemoveMarks(filename);
+
+  for (const file of files) {
+    const fileBaseName = getFileNameRemoveMarks(file);
+    if (fileBaseName === baseName) {
+      return file;
+      // keep it for extend in need
+      //   const match = file.match(/\[.*?\]/);
+      //   if (match) {
+      //     return `${baseName} ${match[0]}.mp3`;
+      //   }
+    }
+  }
+
+  return filename; // Nếu không tìm thấy file có mark, trả về tên file gốc
+}
+
+export async function getFileByEitherFolder(
+  filename: string,
+  folderPath: string,
+  rootFolderPath: string
+): Promise<{ fullname: string; absPath: string }> {
+  const files = await fs.readdir(folderPath);
+  const baseName = getFileNameRemoveMarks(filename);
+
+  for (const file of files) {
+    const fileBaseName = getFileNameRemoveMarks(file);
+    if (fileBaseName === baseName) {
+      console.dir(file);
+
+      return {
+        fullname: file,
+        absPath: path.join(folderPath, file),
+      };
+      // keep it for extend in need
+      //   const match = file.match(/\[.*?\]/);
+      //   if (match) {
+      //     return `${baseName} ${match[0]}.mp3`;
+      //   }
+    }
+  }
+  return {
+    fullname: filename,
+    absPath: path.join(rootFolderPath, filename),
+  };
+  // Nếu không tìm thấy file có mark, trả về tên file gốc
+}
+
+export function getFileNameRemoveMarks(filename: string): string {
+  return filename.replace(/\s*\[.*?\]/g, "").trim();
+}
+
+export function changeExtension(filePath: string, newExtension: any) {
+  // Lấy thư mục, tên file gốc và extension gốc từ filePath
+  const dir = path.dirname(filePath);
+  const baseName = path.basename(filePath, path.extname(filePath));
+
+  // Tạo đường dẫn mới với extension mới
+  const newFilePath = path.join(dir, `${baseName}${newExtension}`);
+
+  return newFilePath;
+}

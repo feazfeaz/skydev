@@ -1,0 +1,51 @@
+Nhận kênh
+    xem xét mục xuất bản thì có thông báo người đã đăng ký hay không
+    tắt phân cảnh tự động, ?chèn địa điểm tự động
+    mở giấy phép, chuyển nó thành common creative
+    thông tin kênh cơ bản
+        quốc gia cư trú thì đặt ở thị trường mình muốn khai thác
+    hình mờ cho video
+        là nút đăng ký
+            thời lượng là cả video
+
+
+check upload
+tiêu đề
+playlist
+playing list - danh sách phát  / lyric - lời bài hát
+description cần có sự khác biệt, nhiều nhất có thể
+thumbnail
+tag
+phụ đề nước ngoài
+có/không comment ghim
+Đăng theo "khung giờ" nhưng không cố định "giờ, phút" 
+    vd như khung giờ là 5 giờ nhưng ngẫu nhiên trong 5h10 5h38 5h25
+
+
+
+
+SEO đa ngôn ngữ cho kênh bolero - Tiếng Anh tiêu chuẩn là đủ
+
+    Bắt buộc
+        Hoa Kỳ - Anh Mỹ 
+        Vương Quốc Anh - Anh Anh 
+    
+    Bỉ top 2 bolero - 15.42 rpm
+    Srilanka top 3 bolero - 4.06 rpm
+
+    Congo - top 1 rumba
+    Latvia - top 2 rumba
+        Cuba - top 3 rumba 
+    Spain - TBN - top 12 rumba - nhưng rpm 14.22
+
+    không có ai nghe bolero
+        Nhật, Hàn,  - 
+        Hà lan - Hà lan
+        Đức
+        Pháp
+
+    Ấn Độ - né - view bẩn lắm
+    trung quốc - ghét nên ko SEO
+    Canada - Anh/Pháp - Nên ko cần SEO
+
+    
