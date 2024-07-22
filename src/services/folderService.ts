@@ -1,4 +1,4 @@
-import { promises as fs } from "fs";
+import { promises as fs, PathLike } from "fs";
 import path from "path";
 
 export async function createUniqueDirectory(basePath: string, prefix?: string) {
@@ -14,7 +14,7 @@ export async function createUniqueDirectory(basePath: string, prefix?: string) {
   // Tạo tên thư mục
   const uniqueDirName = `${
     prefix || ""
-  }_${hours}h${minutes}m${seconds}s_${year}-${month}-${date}`;
+  }_${year}${month}${date}_${hours}h${minutes}m${seconds}s`;
 
   // Tạo đường dẫn đầy đủ cho thư mục
   const newDirPath_ = path.join(basePath, uniqueDirName);
@@ -82,7 +82,7 @@ export async function getFileByEitherFolder(
   for (const file of files) {
     const fileBaseName = getFileNameRemoveMarks(file);
     if (fileBaseName === baseName) {
-      console.dir(file);
+      // console.dir(file);
 
       return {
         fullname: file,
@@ -115,4 +115,23 @@ export function changeExtension(filePath: string, newExtension: any) {
   const newFilePath = path.join(dir, `${baseName}${newExtension}`);
 
   return newFilePath;
+}
+
+/**
+ * Di chuyển (cut) file từ vị trí hiện tại tới vị trí mới.
+ * @param {string} currentPath - Đường dẫn hiện tại của file.
+ * @param {string} newPath - Đường dẫn mới của file.
+ */
+export async function moveFile(currentPath: string, newPath: string) {
+  try {
+    // Đảm bảo thư mục đích tồn tại
+    await fs.mkdir(path.dirname(newPath), { recursive: true });
+    // Di chuyển file
+    await fs.rename(currentPath, newPath);
+  } catch (error) {
+    console.error(
+      `Error moving file from ${currentPath} to ${newPath}:`,
+      error
+    );
+  }
 }

@@ -7,7 +7,11 @@ import { myMkdir, shuffleArray } from "./util";
 // import { createTmpAudioFile } from "@/services/ffmpegService";
 import { durationExpand } from "@/services/songService";
 import { removeFileExtension } from "@/services/util";
-import { addPlaylist, getFilesNameByFolderPath } from "./playlistService";
+import {
+  addPlaylist,
+  addPlaylistLofiVer2,
+  getFilesNameByFolderPath,
+} from "./playlistService";
 import { changeExtension } from "./folderService";
 
 export const audioFirstFolderName = "first";
@@ -142,7 +146,7 @@ export async function createTmpAudioFile(
       .on("start", (cmd) => {})
       .on("progress", (progress) => {})
       .on("end", async () => {
-        await fs.unlink(tempFileList);
+        // await fs.unlink(tempFileList);
         resolve();
       })
       .on("error", (err) => {
@@ -255,7 +259,6 @@ export async function getPlaylist(
 
   // Chuyển fileMap trở lại thành mảng
   priorityFiles = shuffleArray(Array.from(fileMap.values()));
-  // console.log("priorityFiles: ", priorityFiles);
   const firstoffPickup = priorityFiles.pop();
   //@ts-ignore
   firstoffPickup.absPath = path.join(priorityPath, firstoffPickup?.fullname);
@@ -320,26 +323,107 @@ export async function getPlaylist(
 export async function getPlaylistV2(
   audioFolderPath: string,
   playlistLength: number,
-  highlightPickup: number = 0
+  highlightPickup: number = 0,
+  firstUsedFolderPath?: string
 ) {
   let audioFiles = [];
   // check folder - we skip it now
   await initAudioFolder(audioFolderPath);
 
-  if (highlightPickup) {
+  //get first
+  if (firstUsedFolderPath) {
     await addPlaylist(
+      audioFiles,
+      path.join(audioFolderPath, audioFirstFolderName),
+      1,
+      path.join(audioFolderPath, pickUp),
+      true
+    );
+    playlistLength -= 1;
+  }
+
+  //get high light
+  if (highlightPickup) {
+    const { numberAudioAdded } = await addPlaylist(
       audioFiles,
       path.join(audioFolderPath, audioHighlightFolderName),
       highlightPickup,
       path.join(audioFolderPath, pickUp)
     );
+    playlistLength -= numberAudioAdded;
   }
 
+  //add fill
   await addPlaylist(
     audioFiles,
-    path.join(audioFolderPath),
-    playlistLength - highlightPickup
+    path.join(audioFolderPath), // default folder is know for fill folder
+    playlistLength
   );
+
+  await durationExpand(audioFiles);
+
+  return audioFiles;
+}
+
+export async function getPlaylistVer2ExtraFill(
+  audioFolderPath: string,
+  playlistLength: number,
+  highlightPickup: number = 0,
+  extraFillFolderPaths: object[],
+  firstUsedFolderPath?: string
+) {
+  let audioFiles = [];
+  // check folder - we skip it now
+  await initAudioFolder(audioFolderPath);
+
+  //get first
+  if (firstUsedFolderPath) {
+    await addPlaylist(
+      audioFiles,
+      path.join(audioFolderPath, audioFirstFolderName),
+      1,
+      path.join(audioFolderPath, pickUp),
+      true
+    );
+    playlistLength -= 1;
+  }
+
+  //get high light
+  if (highlightPickup) {
+    const { numberAudioAdded } = await addPlaylist(
+      audioFiles,
+      path.join(audioFolderPath, audioHighlightFolderName),
+      highlightPickup,
+      path.join(audioFolderPath, pickUp)
+    );
+    playlistLength -= numberAudioAdded;
+  }
+
+  //add fill
+  const { numberAudioAdded } = await addPlaylist(
+    audioFiles,
+    path.join(audioFolderPath), // default folder is know for fill folder
+    playlistLength,
+    path.join(audioFolderPath, pickUp)
+  );
+  playlistLength -= numberAudioAdded;
+
+  if (extraFillFolderPaths) {
+    extraFillFolderPaths = shuffleArray(extraFillFolderPaths);
+    for (let folderPath of extraFillFolderPaths) {
+      //add extra fill
+      const { numberAudioAdded } = await addPlaylist(
+        audioFiles,
+        folderPath.indexFolder, // default folder is know for fill folder
+        playlistLength,
+        path.join(folderPath.useFolder)
+      );
+      playlistLength -= numberAudioAdded;
+      if (playlistLength <= 0) {
+        break;
+      }
+    }
+  }
 
   await durationExpand(audioFiles);
 
@@ -476,6 +560,21 @@ async function mergeWavFiles(wavFiles, outputWavFile, duration?) {
         })
         .save(outputWavFile);
     }
+  });
+}
+
+export async function standardizeAudio(inputFile, outputFile) {
+  return new Promise((resolve, reject) => {
+    ffmpeg(inputFile)
+      .outputOptions([
+        "-ar 44100", // Sampling rate: 44100 Hz
+        "-ac 2", // Number of channels: 2 (stereo)
+        "-sample_fmt s16", // Bit depth: 16-bit
+      ])
+      .output(outputFile)
+      .on("end", () => resolve())
+      .on("error", (err) => reject(err))
+      .run();
   });
 }
 

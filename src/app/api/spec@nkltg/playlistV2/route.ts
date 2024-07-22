@@ -1,4 +1,8 @@
-import { createUniqueDirectory, moveFile } from "@/services/folderService";
+import {
+  createUniqueDirectory,
+  isExist,
+  moveFile,
+} from "@/services/folderService";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -14,11 +18,7 @@ import {
 } from "@/services/ffmpegService";
 import { createPlayListTimeFile } from "@/services/songService";
 import { getFilesNameByFolderPath } from "@/services/playlistService";
-import {
-  createDescriptionFile,
-  getRandomNumber,
-  insertAdsIntoPlaylist,
-} from "@/services/util";
+import { createDescriptionFile } from "@/services/util";
 
 //init
 const rootFolder = "E:\\hyu\\@nkltg - storage";
@@ -27,16 +27,12 @@ const audioFolderPath = `${rootFolder}\\instruVer2`;
 const videoFolderPath = `${rootFolder}\\screen`;
 const rssFolderPath = `${rootFolder}\\rss`;
 
-const time = 7;
-let playlistLength = 0;
-const minPlaylistLength = 20;
-const maxPlaylistLength = 24;
-let highlightPickup = 0;
-const minHighlightPickup = 4;
-const maxHighlightPickup = 7;
+const time = 1;
+const playlistLength = 22;
+const highlightPickup = 5; // từ 5-7 là lý tưởng
+const fillPickup = playlistLength - highlightPickup;
 
 export async function GET() {
-  // await createSeoDescriptionFile();
   const firstfile: object[] = await getFilesNameByFolderPath(
     path.join(audioFolderPath, "first")
   );
@@ -44,8 +40,6 @@ export async function GET() {
   if (firstfile.length == 0) {
     console.info("first file trống");
     for (let index = 0; index < time; index++) {
-      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
-      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
       await renderator();
     }
   } else {
@@ -53,13 +47,11 @@ export async function GET() {
       path.join(audioFolderPath, "first"),
       "used"
     );
-
     for (let index = 0; index < time; index++) {
-      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
-      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
       await renderator(folderPath);
     }
   }
+
   return Response.json({ rep: "run" });
 }
 
@@ -68,6 +60,7 @@ async function renderator(firstUsedFolderPath?: string | undefined) {
     renderFolderPath,
     "@nkltg"
   );
+
   // getting playlist
   let playlist = await getPlaylistV2(
     audioFolderPath,
@@ -91,11 +84,6 @@ async function renderator(firstUsedFolderPath?: string | undefined) {
     path.join(rssFolderPath, "en-description-template.txt")
   );
   console.info("\ten-description docs hoàn thành ");
-
-  // create en-description file
-  console.info("Bắt đầu tạo ads file.");
-  await insertAdsIntoPlaylist(playlistFilePath);
-  console.info("\tads file docs hoàn thành ");
 
   // create temporaty audio file
   console.info("Bắt đầu tạo audio file.");
@@ -129,11 +117,11 @@ async function renderator(firstUsedFolderPath?: string | undefined) {
 
   await fs.unlink(path.join(folderPath, "tmp_screen.mp4"));
   await fs.unlink(path.join(folderPath, "tmp_audio.mp3"));
-
   //move first file to out of list
   await moveFile(
     path.join(audioFolderPath, audioFirstFolderName, playlist[0].name + ".mp3"),
+    // playlist[0].absPath,
     path.join(firstUsedFolderPath + "", playlist[0].name + ".mp3")
   );
-  console.info("Dọn dẹp xong\n");
+  console.info("Dọn dẹp xong");
 }

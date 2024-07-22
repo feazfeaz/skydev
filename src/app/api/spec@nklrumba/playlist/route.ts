@@ -1,5 +1,6 @@
 // import { createTmpAudioFile } from "@/services/ffmpegService";
 import {
+  audioFirstFolderName,
   createExsoundFile,
   createTmpAudioFile,
   createTmpScreenFile,
@@ -9,31 +10,61 @@ import {
   mergeAudioFiles,
   mergeVideoWithAudio,
 } from "@/services/ffmpegService";
-import { createUniqueDirectory } from "@/services/folderService";
+import { createUniqueDirectory, moveFile } from "@/services/folderService";
 import { createPlayListTimeFile } from "@/services/songService";
 import path from "path";
 import { promises as fs } from "fs";
 import { getFilesNameByFolderPath } from "@/services/playlistService";
-import { getRandomNumber, removeFileExtension } from "@/services/util";
-//init
-const renderFolderPath = "E:\\hyu\\@nklrumba\\rendering";
-const audioFolderPath = "E:\\hyu\\@nklrumba\\instru - slowed";
-const videoFolderPath = "E:\\hyu\\@nklrumba\\screen";
+import {
+  createDescriptionFile,
+  getRandomNumber,
+  removeFileExtension,
+} from "@/services/util";
 
-const time = 2;
-const playlistMinLength = 20;
-const playlistMaxLength = 25;
-const highlightPickup = 4;
+//init
+const rootFolder = "E:\\hyu\\@nklrumba";
+const renderFolderPath = `${rootFolder}\\rendering`;
+const audioFolderPath = `${rootFolder}\\instru - slowed`;
+const videoFolderPath = `${rootFolder}\\screen`;
+const rssFolderPath = `${rootFolder}\\rss`;
+
+const time = 14;
+let playlistLength = 0;
+const minPlaylistLength = 20;
+const maxPlaylistLength = 25;
+let highlightPickup = 0;
+const minHighlightPickup = 4;
+const maxHighlightPickup = 7;
 
 export async function GET() {
-  for (let index = 0; index < time; index++) {
-    await renderator(getRandomNumber(playlistMinLength, playlistMaxLength));
+  const firstfile: object[] = await getFilesNameByFolderPath(
+    path.join(audioFolderPath, "first")
+  );
+
+  if (firstfile.length == 0) {
+    console.info("first file trống");
+    for (let index = 0; index < time; index++) {
+      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
+      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
+      await renderator();
+    }
+  } else {
+    const { folderPath, uniqueDirName } = await createUniqueDirectory(
+      path.join(audioFolderPath, "first"),
+      "used"
+    );
+
+    for (let index = 0; index < time; index++) {
+      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
+      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
+      await renderator(folderPath);
+    }
   }
 
   return Response.json({ rep: "run" });
 }
 
-async function renderator(playlistLength: number) {
+async function renderator(firstUsedFolderPath?: string | undefined) {
   const { folderPath, uniqueDirName } = await createUniqueDirectory(
     renderFolderPath,
     "@nklrumba-list"
@@ -42,13 +73,25 @@ async function renderator(playlistLength: number) {
   let playlist = await getPlaylistV2(
     audioFolderPath,
     playlistLength,
-    highlightPickup
+    highlightPickup,
+    firstUsedFolderPath
   );
 
   // create time line playlist
   console.info("Bắt đầu tạo time line docs.");
-  await createPlayListTimeFile(playlist, path.join(folderPath, "playlist.txt"));
+  const playlistFilePath = await createPlayListTimeFile(
+    playlist,
+    path.join(folderPath, "playlist.txt")
+  );
   console.info("\tTime line docs hoàn thành ");
+
+  // create en-description file
+  console.info("Bắt đầu tạo en-description docs.");
+  await createDescriptionFile(
+    playlistFilePath,
+    path.join(rssFolderPath, "en-description-template.txt")
+  );
+  console.info("\ten-description docs hoàn thành ");
 
   // create temporaty audio file
   console.info("Bắt đầu tạo audio file.");
@@ -82,6 +125,14 @@ async function renderator(playlistLength: number) {
 
   await fs.unlink(path.join(folderPath, "tmp_screen.mp4"));
   await fs.unlink(path.join(folderPath, "tmp_audio.mp3"));
+
+  //move first file to out of list
+  await moveFile(
+    path.join(audioFolderPath, audioFirstFolderName, playlist[0].name + ".mp3"),
+    // playlist[0].absPath,
+    path.join(firstUsedFolderPath + "", playlist[0].name + ".mp3")
+  );
+  console.info("\tCleared!\t");
 
   // console.info("playlist: ", playlist);
 }

@@ -32,4 +32,6 @@ export async function createPlayListTimeFile(
   await fs.writeFile(outputDocsFilePath, listingMusicDocs || [], {
     flag: "w",
   });
+
+  return outputDocsFilePath;
 }

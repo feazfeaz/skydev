@@ -1,5 +1,6 @@
 // import { createTmpAudioFile } from "@/services/ffmpegService";
 import {
+  audioFirstFolderName,
   createExsoundFile,
   createTmpAudioFile,
   createTmpAudioWavFile,
@@ -10,33 +11,62 @@ import {
   mergeAudioFiles,
   mergeVideoWithAudio,
 } from "@/services/ffmpegService";
-import { createUniqueDirectory } from "@/services/folderService";
+import { createUniqueDirectory, moveFile } from "@/services/folderService";
 import { createPlayListTimeFile } from "@/services/songService";
 import path from "path";
 import { promises as fs } from "fs";
 import { getFilesNameByFolderPath } from "@/services/playlistService";
-import { removeFileExtension } from "@/services/util";
+import {
+  createDescriptionFile,
+  getRandomNumber,
+  insertAdsIntoPlaylist,
+  removeFileExtension,
+} from "@/services/util";
 //init
-const renderFolderPath = "E:\\hyu\\@nhạctrữtình-bolero\\rendering";
-const audioFolderPath = "E:\\hyu\\@nhạctrữtình-bolero\\instru";
-const videoFolderPath = "E:\\hyu\\@nhạctrữtình-bolero\\screen";
-const exsoundFolderPath = "E:\\hyu\\@nhạctrữtình-bolero\\exsound";
+const rootFolder = "E:\\hyu\\@nhạctrữtình-bolero";
+const renderFolderPath = `${rootFolder}\\rendering`;
+const audioFolderPath = `${rootFolder}\\instru`;
+const videoFolderPath = `${rootFolder}\\screen`;
+const exsoundFolderPath = `${rootFolder}\\exsound`;
+const rssFolderPath = `${rootFolder}\\rss`;
 
-const time = 0;
-const playlistLength = 15;
-// const highlightPickup = 5;
+const time = 14;
+let playlistLength = 0;
+const minPlaylistLength = 14;
+const maxPlaylistLength = 17;
+let highlightPickup = 0;
+const minHighlightPickup = 4;
+const maxHighlightPickup = 7;
 
 export async function GET() {
   // await createSeoDescriptionFile();
+  const firstfile: object[] = await getFilesNameByFolderPath(
+    path.join(audioFolderPath, "first")
+  );
 
-  for (let i = 0; i < time; i++) {
-    await renderator();
+  if (firstfile.length == 0) {
+    console.info("first file trống");
+    for (let index = 0; index < time; index++) {
+      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
+      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
+      await renderator();
+    }
+  } else {
+    const { folderPath, uniqueDirName } = await createUniqueDirectory(
+      path.join(audioFolderPath, "first"),
+      "used"
+    );
+
+    for (let index = 0; index < time; index++) {
+      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
+      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
+      await renderator(folderPath);
+    }
   }
-
   return Response.json({ rep: "run" });
 }
 
-async function renderator() {
+async function renderator(firstUsedFolderPath?: string | undefined) {
   const { folderPath, uniqueDirName } = await createUniqueDirectory(
     renderFolderPath,
     "@nhactrutinh-bolero"
@@ -45,12 +75,33 @@ async function renderator() {
   let finalAudioFilePath = "";
   let finalVideoFilePath = "";
   // getting playlist
-  let playlist = await getPlaylistV2(audioFolderPath, playlistLength);
+  let playlist = await getPlaylistV2(
+    audioFolderPath,
+    playlistLength,
+    highlightPickup,
+    firstUsedFolderPath
+  );
 
   // create time line playlist
   console.info("Bắt đầu tạo time line docs.");
-  await createPlayListTimeFile(playlist, path.join(folderPath, "playlist.txt"));
+  const playlistFilePath = await createPlayListTimeFile(
+    playlist,
+    path.join(folderPath, "playlist.txt")
+  );
   console.info("\tTime line docs hoàn thành ");
+
+  // create en-description file
+  console.info("Bắt đầu tạo en-description docs.");
+  await createDescriptionFile(
+    playlistFilePath,
+    path.join(rssFolderPath, "en-description-template.txt")
+  );
+  console.info("\ten-description docs hoàn thành");
+
+  // create en-description file
+  console.info("Bắt đầu tạo ads file.");
+  await insertAdsIntoPlaylist(playlistFilePath);
+  console.info("\tads file docs hoàn thành ");
 
   // create temporaty audio file
   console.info("Bắt đầu tạo audio file.");
@@ -103,60 +154,17 @@ async function renderator() {
     finalAudioFilePath,
     path.join(folderPath, `${uniqueDirName}.mp4`)
   );
-  console.info("\tFinal video hoàn thành.");
+  console.info("\tFinal video hoàn thành.\n");
 
   await fs.unlink(path.join(folderPath, "tmp_screen.mp4"));
   await fs.unlink(path.join(folderPath, "tmp_audio.wav"));
 
+  //move first file to out of list
+  await moveFile(
+    path.join(audioFolderPath, audioFirstFolderName, playlist[0].name + ".wav"),
+    // playlist[0].absPath,
+    path.join(firstUsedFolderPath + "", playlist[0].name + ".wav")
+  );
+
   // console.info("playlist: ", playlist);
 }
-
-async function createSeoDescriptionFile() {
-  const file1Path = path.join(
-    "E:\\hyu\\@nhạctrữtình-bolero\\rendering\\@nhactrutinh-bolero_08h50m04s_2024-07-04",
-    "playlist.txt"
-  ); // Thay bằng đường dẫn thực tế của file 1
-  const file2Path = path.join(
-    "E:\\hyu\\@nhạctrữtình-bolero\\rendering\\@nhactrutinh-bolero_08h50m04s_2024-07-04",
-    "en-seo.txt"
-  ); // Thay bằng đường dẫn thực tế của file 2
-  const outputFilePath = path.join(
-    "E:\\hyu\\@nhạctrữtình-bolero\\rendering\\@nhactrutinh-bolero_08h50m04s_2024-07-04",
-    "en-seo-result.txt"
-  ); // Đường dẫn lưu file kết quả
-
-  try {
-    // Đọc nội dung file 1
-    const data1 = await fs.readFile(file1Path, { encoding: "utf8" });
-    // Đọc nội dung file 2
-    const data2 = await fs.readFile(file2Path, { encoding: "utf8" });
-
-    // Thay thế <replace> trong file 2 bằng nội dung của file 1
-    const newData = data2.toString().replace("<replace>", data1.toString());
-
-    // Ghi kết quả vào file mới
-    await fs.writeFile(outputFilePath, newData, "utf8");
-    console.log("File has been created successfully.");
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
-
-// const exsoundNeedExtractAudio = await getFilesNameByFolderPath(
-//   exsoundFolderPath,
-//   ".mp4"
-// );
-// //@ts-ignore
-// for (const mp4 of exsoundNeedExtractAudio) {
-//   await extractAudio(
-//     path.join(exsoundFolderPath, mp4),
-//     path.join(exsoundFolderPath, `${removeFileExtension(mp4)}.wav`),
-//     0.75
-//   );
-// }
-
-// await mergeAudioFiles(
-//   path.join(renderFolderPath, "1.wav"),
-//   path.join(renderFolderPath, "bird.wav"),
-//   path.join(renderFolderPath, "test.wav")
-// );

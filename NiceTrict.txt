@@ -19,7 +19,12 @@ tag
 phụ đề nước ngoài
 có/không comment ghim
 Đăng theo "khung giờ" nhưng không cố định "giờ, phút" 
-    vd như khung giờ là 5 giờ nhưng ngẫu nhiên trong 5h10 5h38 5h25
+    vd như khung giờ là 5 giờ nhưng ngẫu nhiên trong 5h10 5h38 5h25 - bỏ
+    khung giờ cố định nhưng là khung giờ lẻ
+mốc quảng cáo (+1track - 1s)
+    3 6 9 12 15 18 21 
+    3
+
 
 
 
@@ -48,4 +53,31 @@ SEO đa ngôn ngữ cho kênh bolero - Tiếng Anh tiêu chuẩn là đủ
     trung quốc - ghét nên ko SEO
     Canada - Anh/Pháp - Nên ko cần SEO
 
+
+    Tiếng Việt
+
+"Đừng quên nhấn Đăng ký và Like để luôn được thư giãn với những bản nhạc không lời tuyệt vời nhất!"
+
+"Cảm ơn bạn đã lắng nghe! Hãy Đăng ký và Like để cập nhật những bản nhạc không lời mới nhất từ chúng tôi!"
+
+    Tiếng Anh
     
+"Don't forget to hit Subscribe and Like to always relax with the best instrumental music!"
+
+"Thank you for listening! Hit Subscribe and Like to stay updated with the latest instrumental tracks from us!"
+
+    
+@nklrumba 
+    "Hãy Đăng ký và Like để ủng hộ kênh, giúp chúng tôi mang đến nhiều bản nhạc không lời hay hơn nữa cho bạn!"
+    "Support our channel by hitting Subscribe and Like, and help us bring you more great instrumental music!"
+
+@nhactrutinhkhongloi
+    "Nếu bạn yêu thích những giai điệu thư giãn này, hãy nhấn Đăng ký và Like để không bỏ lỡ bất kỳ video mới nào từ kênh của chúng tôi!"
+    "If you enjoyed these relaxing tunes, hit Subscribe and Like so you never miss any of our new videos!"
+
+@nkltg
+    {không dùng}
+
+@????
+    "Nếu bạn thấy video này hữu ích, hãy nhấn Like và Đăng ký kênh để chúng tôi có thể tiếp tục cung cấp những giai điệu thư giãn cho bạn!"
+    "If you found this video helpful, please hit Like and Subscribe to our channel so we can keep providing you with relaxing melodies!"
