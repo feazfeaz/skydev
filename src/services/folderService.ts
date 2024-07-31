@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { promises as fs, PathLike } from "fs";
 import path from "path";
 
@@ -134,4 +135,69 @@ export async function moveFile(currentPath: string, newPath: string) {
       error
     );
   }
+}
+
+// Hàm phân tích tên thư mục để lấy thời gian tạo
+function parseDirectoryName(directoryName) {
+  const regex = /_(\d{4})(\d{2})(\d{2})_(\d{2})h(\d{2})m(\d{2})s$/;
+  const match = directoryName.match(regex);
+  if (match) {
+    const [, year, month, day, hours, minutes, seconds] = match;
+    return new Date(`${year}-${month}-${day}T${hours}:${minutes}:${seconds}`);
+  }
+  return null;
+}
+
+// Hàm để tìm hai thư mục được tạo gần đây nhất
+export async function getTwoLatestDirectories(parentDirectoryPath) {
+  try {
+    // Đọc nội dung của thư mục cha
+    const files = await fs.readdir(parentDirectoryPath);
+
+    // Lọc để chỉ lấy các thư mục có tên khớp với định dạng của hàm createUniqueDirectory
+    const directories = files.filter((file) =>
+      /_\d{4}\d{2}\d{2}_\d{2}h\d{2}m\d{2}s$/.test(file)
+    );
+
+    // Lấy thông tin ngày tạo của các thư mục
+    const directoryInfos = directories
+      .map((dir) => {
+        const creationTime = parseDirectoryName(dir);
+        return { path: path.join(parentDirectoryPath, dir), creationTime };
+      })
+      .filter((info) => info.creationTime); // Lọc các thư mục có ngày tạo hợp lệ
+
+    // Sắp xếp các thư mục theo ngày tạo giảm dần
+    directoryInfos.sort((a, b) => b.creationTime - a.creationTime);
+
+    // Trả về hai thư mục được tạo gần đây nhất
+    return directoryInfos.slice(0, 2).map((info) => info.path);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+export async function copyFiles(
+  input: { folderPath: any; fileNames: any },
+  output: { folderPath: any }
+) {
+  return new Promise((resolve, reject) => {
+    const { folderPath: inputFolderPath, fileNames } = input;
+    const { folderPath: outputFolderPath } = output;
+
+    const copyPromises = fileNames.map((fileName: string) => {
+      return new Promise((fileResolve, fileReject) => {
+        const sourceFilePath = path.join(inputFolderPath, fileName);
+        const destinationFilePath = path.join(outputFolderPath, fileName);
+
+        // @ts-ignore
+        fs.copyFile(sourceFilePath, destinationFilePath);
+        fileResolve(true);
+      });
+    });
+
+    Promise.all(copyPromises)
+      .then((results) => resolve(results))
+      .catch((err) => reject(err));
+  });
 }

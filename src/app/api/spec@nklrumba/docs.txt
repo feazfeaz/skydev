@@ -75,6 +75,39 @@ Tuyển tập hòa tấu Bolero không lời nhẹ nhàng tuyệt hảo cho ngà
 Tuyển tập hòa tấu Bolero không lời nhẹ nhàng tuyệt hảo cho ngày an tĩnh
 cho cả ngày ??
 
+tuyệt hay
+tuyệt hảo
+thư giản đầu óc
+Thư giản hay nhất
+Tuyển tập
+Triệu lượt nghe
+Say Giấc Ngủ Trưa
+Mở mắt không lên với 3 giờ bolore
+xua tan mệt mỏi
+giải tỏa tâm trí
+đánh bay cái nóng
+lười
+
+Cả ngày Bolero thư giãn với giai điệu hòa tấu Rumba | Nhạc cafe sáng 
+Cả ngày Bolero cùng tách cà phê sáng
+Cả ngày Bolero không lời cho buổi sáng bình yên
+Cả ngày Bolero hòa mình vào Rumba ngọt ngào
+Cả ngày Bolero thả hồn cùng nhạc trữ tình
+Cả ngày Bolero với nhạc không lời và cà phê
+Cả ngày Bolero thư giãn với âm nhạc buổi sáng
+Cả ngày Bolero cùng giai điệu Rumba nhẹ nhàng
+Cả ngày Bolero thưởng thức nhạc không lời
+Cả ngày Bolero thư giãn với cà phê và nhạc
+Cả ngày Bolero giai điệu Rumba cho ngày mới
+Cả ngày Bolero nhạc không lời dịu dàng
+Cả ngày Bolero thả hồn vào buổi sáng bình yên
+Cả ngày Bolero cùng giai điệu Rumba và cà phê
+Cả ngày Bolero nhạc trữ tình không lời
+Cả ngày Bolero thư thái cùng cà phê sáng
+Cả ngày Bolero giai điệu Rumba bay bổng
+Cả ngày Bolero nhạc không lời cho ngày thư giãn
+Cả ngày Bolero âm nhạc buổi sáng nhẹ nhàng
+
 An lạc
 Thảnh thơi
 Thoải mái
@@ -85,6 +118,7 @@ Tinh thần sảng khoái
 Tâm trí thư thái
 Tinh thần thoải mái
 Tâm hồn yên tĩnh
+bay bổng
 
 Thanh thản
 Dễ chịu
@@ -106,6 +140,13 @@ Sảng khoái
 Yên tĩnh
 Nhàn nhã
 Dịu dàng
+
+
+sầu lắng
+U buồn
+Ưu tư
+Âu sầu thăm thẳm
+lặng lẽ
 
 xua tan mệt mỏi
 giải tỏa tâm trí
@@ -147,7 +188,11 @@ vd: Cafe buổi sáng cùng những giai điệu Bolero không lời giúp bạn
 
 <lãng mạn> xinh đẹp, ngọt ngào, dịu dàng, nhẹ nhàng, thư giãn, thoải mái 
 <bình yên mộng mơ> 
-<?bất hữu> tuyệt hảo
+<?bất hữu> tuyệt hảo, tuyệt hay, tuyệt phẩm
+    say lòng người
+
+<thư giãn đầu óc> xua tan mệt mỏi, giải tỏa tâm trí, giảm căng thẳng, tỉnh táo tinh thần, tập trung đi ngủ 
+    Thanh lọc tâm trí, lắng đọng tâm trí, sảng khoái đầu óc, làm mát tâm trí/tinh thần
 
 
 22-28/7
@@ -190,82 +235,6 @@ Những Đồi Hoa Sim không lời cực hay | Hòa Tấu Rumba Guitar Không L
 
 
 
-tuyệt hay
-tuyệt hảo
-thư giản đầu óc
-Thư giản hay nhất
-Tuyển tập
-Triệu lượt nghe
-Say Giấc Ngủ Trưa
-Mở mắt không lên với 3 giờ bolore
-xua tan mệt mỏi
-giải tỏa tâm trí
-đánh bay cái nóng
-lười
-
-Cả ngày Bolero thư giãn với giai điệu hòa tấu Rumba | Nhạc cafe sáng 
-Cả ngày Bolero cùng tách cà phê sáng
-Cả ngày Bolero không lời cho buổi sáng bình yên
-Cả ngày Bolero hòa mình vào Rumba ngọt ngào
-Cả ngày Bolero thả hồn cùng nhạc trữ tình
-Cả ngày Bolero với nhạc không lời và cà phê
-Cả ngày Bolero thư giãn với âm nhạc buổi sáng
-Cả ngày Bolero cùng giai điệu Rumba nhẹ nhàng
-Cả ngày Bolero thưởng thức nhạc không lời
-Cả ngày Bolero thư giãn với cà phê và nhạc
-Cả ngày Bolero giai điệu Rumba cho ngày mới
-Cả ngày Bolero nhạc không lời dịu dàng
-Cả ngày Bolero thả hồn vào buổi sáng bình yên
-Cả ngày Bolero cùng giai điệu Rumba và cà phê
-Cả ngày Bolero nhạc trữ tình không lời
-Cả ngày Bolero thư thái cùng cà phê sáng
-Cả ngày Bolero giai điệu Rumba bay bổng
-Cả ngày Bolero nhạc không lời cho ngày thư giãn
-Cả ngày Bolero âm nhạc buổi sáng nhẹ nhàng
 
 
-22-28/7
-☕ Mỗi Ngày 1 Giờ Bolero Không Lời Sảng Khoái Đầu Óc, Giảm Căng Thẳng | Nhạc Cafe Buổi Sáng
-☕ Enjoy an Hour of Refreshing, Stress-Relieving Instrumental Bolero Each Morning | Morning Coffee Music
 
-🎷 Tuyển Chọn Hơn 22 Bản Hòa Tấu Bolero Tuyệt Hảo Cho Buổi Sáng | Nhạc Cafe Buổi Sáng
-🎷 A Selection of Over 22 Perfect Instrumental Bolero Tracks for the Morning | Morning Coffee Music
-
-🎵 Nhạc Không Lời Buổi Sáng Nhẹ Nhàng Thư Giãn Đầu Óc | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-🎵 Gentle and Relaxing Instrumental Morning Music | Instrumental Rumba Guitar | Morning Coffee Music
-
-☕ Mỗi Ngày 1 Giờ Bolero Không Lời Sáng Tạo Đột Phá | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-☕ An Hour of Innovative Instrumental Bolero Each Morning | Instrumental Rumba Guitar | Morning Coffee Music
-
-🎷 Liên Khúc Hơn 22 Giai Điệu Bolero Năng Lượng Tích Cực | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-🎷 Over 22 Positive Energy Instrumental Bolero Melodies | Instrumental Rumba Guitar | Morning Coffee Music
-
-🎵 Nhạc Không Lời Buổi Sáng Tràn Đầy Năng Lượng | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-🎵 Energizing Instrumental Morning Music | Instrumental Rumba Guitar | Morning Coffee Music
-
-Mưa Đêm Ngoại Ô Không Lời Cực Hay | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-Mua Dem Ngoai O Instrumental | Instrumental Rumba Guitar | Morning Coffee Music
-  
-29/7-4/8
-☕ Mỗi Ngày 1 Giờ Bolero Không Lời Buổi Sáng Tuyệt Vời | Nhạc Cafe Buổi Sáng
-☕ An Hour of Wonderful Instrumental Bolero Each Morning | Morning Coffee Music
-
-🎵 Nhạc Không Lời Buổi Sáng Bình Minh Rực Rỡ | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-🎵 Glorious Dawn Instrumental Morning Music | Instrumental Rumba Guitar | Morning Coffee Music
-
-🎷 Tuyển Tập Hơn 22 Bản Hòa Tấu Bolero Ngọt Ngào Hạnh Phúc | Nhạc Cafe Buổi Sáng
-🎷 A Collection of Over 22 Sweet and Happy Instrumental Bolero Tracks | Morning Coffee Music
-
-Những Đồi Hoa Sim Không Lời Cực Hay | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-Beautiful "Những Đồi Hoa Sim" Instrumental | Instrumental Rumba Guitar | Morning Coffee Music
-
-
-🎷 Liên Khúc Hơn 22 Bản Nhạc Bolero Tình Cảm Lãng Mạn | Nhạc Cafe Buổi Sáng
-🎷 Over 22 Romantic and Emotional Instrumental Bolero Tracks | Morning Coffee Music
-
-☕ Mỗi Ngày 1 Giờ Bolero Không Lời Thư Giãn Đầu Óc, Xả Stress | Nhạc Cafe Buổi Sáng
-☕ An Hour of Relaxing, Stress-Relieving Instrumental Bolero Each Morning | Morning Coffee Music
-
-
-🎵 Nhạc Không Lời Buổi Sáng Ban Mai Thanh Bình | Hòa Tấu Rumba Guitar Không Lời | Nhạc Cafe Buổi Sáng
-🎵 Peaceful Morning Dawn Instrumental Music | Instrumental Rumba Guitar | Morning Coffee Music

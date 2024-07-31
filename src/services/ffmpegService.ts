@@ -146,7 +146,7 @@ export async function createTmpAudioFile(
       .on("start", (cmd) => {})
       .on("progress", (progress) => {})
       .on("end", async () => {
-        // await fs.unlink(tempFileList);
+        await fs.unlink(tempFileList);
         resolve();
       })
       .on("error", (err) => {
@@ -576,6 +576,17 @@ export async function standardizeAudio(inputFile, outputFile) {
       .on("error", (err) => reject(err))
       .run();
   });
+}
+// not ready
+export async function standardizeAudioRoute() {
+  const folderRead = path.join(nguyenthaoFolderPath, "");
+  const as = await getFilesNameByFolderPath(folderRead, [".mp3", ".wav"]);
+  for (const a of as) {
+    await standardizeAudio(
+      path.join(folderRead, a + ""),
+      path.join(nguyenthaoFolderPath, "pick_up", a + "")
+    );
+  }
 }
 
 // dont in-use or export

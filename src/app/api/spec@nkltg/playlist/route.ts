@@ -1,10 +1,15 @@
-import { createUniqueDirectory, moveFile } from "@/services/folderService";
+import {
+  createUniqueDirectory,
+  getTwoLatestDirectories,
+  moveFile,
+} from "@/services/folderService";
 import { promises as fs } from "fs";
 import path from "path";
 
 // import { createTmpAudioFile } from "@/services/ffmpegService";
 import {
   audioFirstFolderName,
+  audioHighlightFolderName,
   createTmpAudioFile,
   createTmpScreenFile,
   getMetadata,
@@ -12,12 +17,16 @@ import {
   getPlaylistV2,
   mergeVideoWithAudio,
 } from "@/services/ffmpegService";
-import { createPlayListTimeFile } from "@/services/songService";
+import {
+  createPlayListTimeFile,
+  setFirstForWeak,
+} from "@/services/songService";
 import { getFilesNameByFolderPath } from "@/services/playlistService";
 import {
   createDescriptionFile,
   getRandomNumber,
   insertAdsIntoPlaylist,
+  shuffleArray,
 } from "@/services/util";
 
 //init
@@ -29,36 +38,28 @@ const rssFolderPath = `${rootFolder}\\rss`;
 
 const time = 7;
 let playlistLength = 0;
-const minPlaylistLength = 20;
+// const minPlaylistLength = 20;
+const minPlaylistLength = 22;
 const maxPlaylistLength = 24;
 let highlightPickup = 0;
 const minHighlightPickup = 4;
-const maxHighlightPickup = 7;
+// const maxHighlightPickup = 7;
+const maxHighlightPickup = 4;
 
 export async function GET() {
-  // await createSeoDescriptionFile();
-  const firstfile: object[] = await getFilesNameByFolderPath(
-    path.join(audioFolderPath, "first")
+  //set 7 first for a week
+  await setFirstForWeak(audioFolderPath);
+
+  const { folderPath, uniqueDirName } = await createUniqueDirectory(
+    path.join(audioFolderPath, "first"),
+    "used"
   );
 
-  if (firstfile.length == 0) {
-    console.info("first file trống");
-    for (let index = 0; index < time; index++) {
-      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
-      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
-      await renderator();
-    }
-  } else {
-    const { folderPath, uniqueDirName } = await createUniqueDirectory(
-      path.join(audioFolderPath, "first"),
-      "used"
-    );
-
-    for (let index = 0; index < time; index++) {
-      playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
-      highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
-      await renderator(folderPath);
-    }
+  for (let index = 0; index < time; index++) {
+    console.info(`\n${index + 1}/${time}_________________`);
+    playlistLength = getRandomNumber(minPlaylistLength, maxPlaylistLength);
+    highlightPickup = getRandomNumber(minHighlightPickup, maxHighlightPickup);
+    await renderator(folderPath);
   }
   return Response.json({ rep: "run" });
 }
@@ -132,7 +133,7 @@ async function renderator(firstUsedFolderPath?: string | undefined) {
 
   //move first file to out of list
   await moveFile(
-    path.join(audioFolderPath, audioFirstFolderName, playlist[0].name + ".mp3"),
+    path.join(firstUsedFolderPath + "", "..", playlist[0].name + ".mp3"),
     path.join(firstUsedFolderPath + "", playlist[0].name + ".mp3")
   );
   console.info("Dọn dẹp xong\n");

@@ -28,7 +28,7 @@ mốc quảng cáo (+1track - 1s)
 
 
 
-
+__________________________________________
 SEO đa ngôn ngữ cho kênh bolero - Tiếng Anh tiêu chuẩn là đủ
 
     Bắt buộc
@@ -55,6 +55,7 @@ SEO đa ngôn ngữ cho kênh bolero - Tiếng Anh tiêu chuẩn là đủ
 
 
     Tiếng Việt
+__________________________________________
 
 "Đừng quên nhấn Đăng ký và Like để luôn được thư giãn với những bản nhạc không lời tuyệt vời nhất!"
 
@@ -81,3 +82,41 @@ SEO đa ngôn ngữ cho kênh bolero - Tiếng Anh tiêu chuẩn là đủ
 @????
     "Nếu bạn thấy video này hữu ích, hãy nhấn Like và Đăng ký kênh để chúng tôi có thể tiếp tục cung cấp những giai điệu thư giãn cho bạn!"
     "If you found this video helpful, please hit Like and Subscribe to our channel so we can keep providing you with relaxing melodies!"
+
+__________________________________________    
+cải thiện click rate dựa trên
+    thumbnail
+    tiêu đề
+    số liệu là 2 tuần thời gian
+    tránh những seo ko dc đề xuất
+    
+cải thiện tỉ lệ giữ chân dựa trên 
+    first 
+        bốc first 
+            bốc quá nhiều từ highlight khả năng cao làm người nghe bị nhàm chán vì highlight sẽ lập lại khá nhiều
+            7 - 6 bài lên làm first từ fill  (A)
+            7 - (A) bài lên làm first từ highlight
+
+
+    highlight
+        highlight tối đa khoảng 10->12 bài
+            +0-6 bài (những bài MỚI tuần rồi lên first và đạt chuẩn)
+            + ~4 bài mới từ fill ko bị tuột rate khi nghe
+        Ít nhất là tỉ lệ giữ chân tương đương thông thường 
+
+
+    bốc playlist L (tức là bốc khoảng bao nhiêu bài trong 1 thư mục)
+        ko kể đến first (F = L -1) 
+        L(0.15 - 0.25) bài highlight (H = L - F) / khoảng 2-3 bài tùy vào thời lượng nhưng không quá 15p
+            highlight ko được trùng với mấy bài đã dùng ở 2 ngày trước
+        fill (L - H)
+        extra fill trong trường hợp đã dùng hết bài nhưng vẫn ko đủ độ dài playlist
+    
+
+    Thằng nào vào sọt
+        chưa có cơ sở để xác định
+
+
+
+
+
